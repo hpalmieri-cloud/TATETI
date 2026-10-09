@@ -2,12 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>Ta-Te-Ti</title>
   <style>
+    :root {
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      --fondo: #f0f4f8;
+      --texto: #1a1a1a;
+      --celda: #ffffff;
+      --celda-hover: #dbeafe;
+      --borde: #333333;
+      --gana-fondo: #bbf7d0;
+      --gana-borde: #16a34a;
+      --boton: #333333;
+      --boton-texto: #ffffff;
+      --boton-hover: #555555;
+      --lado: min(100px, 26vw);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fondo: #12161c;
+        --texto: #e8edf3;
+        --celda: #1e252e;
+        --celda-hover: #2a3a52;
+        --borde: #8a97a8;
+        --gana-fondo: #14532d;
+        --gana-borde: #4ade80;
+        --boton: #e8edf3;
+        --boton-texto: #12161c;
+        --boton-hover: #cbd5e1;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --fondo: #12161c;
+      --texto: #e8edf3;
+      --celda: #1e252e;
+      --celda-hover: #2a3a52;
+      --borde: #8a97a8;
+      --gana-fondo: #14532d;
+      --gana-borde: #4ade80;
+      --boton: #e8edf3;
+      --boton-texto: #12161c;
+      --boton-hover: #cbd5e1;
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background-color: #f0f4f8;
+      background-color: var(--fondo);
+      color: var(--texto);
+      margin: 0;
+      padding: 16px;
     }
 
     #marcador {
@@ -17,30 +74,31 @@
 
     #tablero {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
+      grid-template-columns: repeat(3, var(--lado));
       gap: 8px;
       justify-content: center;
       margin-top: 30px;
     }
 
     #tablero button {
-      width: 100px;
-      height: 100px;
-      font-size: 48px;
+      width: var(--lado);
+      height: var(--lado);
+      font-size: calc(var(--lado) * 0.48);
       font-weight: bold;
-      background-color: white;
-      border: 3px solid #333;
+      background-color: var(--celda);
+      color: var(--texto);
+      border: 3px solid var(--borde);
       border-radius: 10px;
       cursor: pointer;
     }
 
     #tablero button:hover {
-      background-color: #dbeafe;
+      background-color: var(--celda-hover);
     }
 
     #tablero button.ganadora {
-      background-color: #bbf7d0;
-      border-color: #16a34a;
+      background-color: var(--gana-fondo);
+      border-color: var(--gana-borde);
     }
 
     #opciones {
@@ -51,15 +109,15 @@
       margin-top: 15px;
       padding: 12px 24px;
       font-size: 18px;
-      background-color: #333;
-      color: white;
+      background-color: var(--boton);
+      color: var(--boton-texto);
       border: none;
       border-radius: 8px;
       cursor: pointer;
     }
 
     #reiniciar:hover {
-      background-color: #555;
+      background-color: var(--boton-hover);
     }
   </style>
 </head>
@@ -277,6 +335,12 @@
 
     botonReiniciar.addEventListener("click", reiniciar);
     vsCompu.addEventListener("change", reiniciar);
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js");
+      });
+    }
   </script>
 </body>
 </html>
