@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ta-Te-Ti</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f4f8;
+    }
+
+    #marcador {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #tablero {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 8px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    #tablero button {
+      width: 100px;
+      height: 100px;
+      font-size: 48px;
+      font-weight: bold;
+      background-color: white;
+      border: 3px solid #333;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #tablero button:hover {
+      background-color: #dbeafe;
+    }
+
+    #tablero button.ganadora {
+      background-color: #bbf7d0;
+      border-color: #16a34a;
+    }
+
+    #opciones {
+      margin-top: 25px;
+    }
+
+    #reiniciar {
+      margin-top: 15px;
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #reiniciar:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ta-Te-Ti</h1>
+  <p id="marcador">X: 0 | O: 0 | Empates: 0</p>
+  <p id="mensaje">Turno de: X</p>
+
+  <div id="tablero">
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+    <button></button>
+  </div>
+
+  <div id="opciones">
+    <label>
+      <input type="checkbox" id="vsCompu" checked>
+      Jugar contra la computadora (vos sos X)
+    </label>
+  </div>
+
+  <button id="reiniciar">Reiniciar</button>
+
+  <script>
+    let turno = "X";
+    let juegoTerminado = false;
+    let computadoraPensando = false;
+    let temporizador = null;
+
+    let puntosX = 0;
+    let puntosO = 0;
+    let empates = 0;
+
+    const casillas = document.querySelectorAll("#tablero button");
+    const mensaje = document.getElementById("mensaje");
+    const marcador = document.getElementById("marcador");
+    const botonReiniciar = document.getElementById("reiniciar");
+    const vsCompu = document.getElementById("vsCompu");
+
+    const combinaciones = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    function buscarGanadora() {
+      for (let i = 0; i < combinaciones.length; i++) {
+        const a = combinaciones[i][0];
+        const b = combinaciones[i][1];
+        const c = combinaciones[i][2];
+
+        if (
+          casillas[a].textContent !== "" &&
+          casillas[a].textContent === casillas[b].textContent &&
+          casillas[a].textContent === casillas[c].textContent
+        ) {
+          return combinaciones[i];
+        }
+      }
+      return null;
+    }
+
+    function hayEmpate() {
+      for (let i = 0; i < casillas.length; i++) {
+        if (casillas[i].textContent === "") {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function actualizarMarcador() {
+      marcador.textContent =
+        "X: " + puntosX + " | O: " + puntosO + " | Empates: " + empates;
+    }
+
+    function jugar(casilla) {
+      if (juegoTerminado || casilla.textContent !== "") {
+        return;
+      }
+
+      casilla.textContent = turno;
+
+      const ganadora = buscarGanadora();
+
+      if (ganadora !== null) {
+        ganadora.forEach(function (indice) {
+          casillas[indice].classList.add("ganadora");
+        });
+
+        if (turno === "X") {
+          puntosX++;
+        } else {
+          puntosO++;
+        }
+
+        actualizarMarcador();
+        mensaje.textContent = "¡Ganó " + turno + "!";
+        juegoTerminado = true;
+        return;
+      }
+
+      if (hayEmpate()) {
+        empates++;
+        actualizarMarcador();
+        mensaje.textContent = "¡Empate!";
+        juegoTerminado = true;
+        return;
+      }
+
+      if (turno === "X") {
+        turno = "O";
+      } else {
+        turno = "X";
+      }
+
+      mensaje.textContent = "Turno de: " + turno;
+    }
+
+    function buscarJugadaParaCompletar(simbolo) {
+      for (let i = 0; i < combinaciones.length; i++) {
+        let cantidadSimbolo = 0;
+        let casillaVacia = null;
+
+        for (let j = 0; j < 3; j++) {
+          const casilla = casillas[combinaciones[i][j]];
+
+          if (casilla.textContent === simbolo) {
+            cantidadSimbolo++;
+          } else if (casilla.textContent === "") {
+            casillaVacia = casilla;
+          }
+        }
+
+        if (cantidadSimbolo === 2 && casillaVacia !== null) {
+          return casillaVacia;
+        }
+      }
+      return null;
+    }
+
+    function jugarComputadora() {
+      if (juegoTerminado || turno !== "O") {
+        computadoraPensando = false;
+        return;
+      }
+
+      // 1. Si puede ganar, gana.
+      let elegida = buscarJugadaParaCompletar("O");
+
+      // 2. Si no, bloquea al jugador.
+      if (elegida === null) {
+        elegida = buscarJugadaParaCompletar("X");
+      }
+
+      // 3. Si no, toma el centro.
+      if (elegida === null && casillas[4].textContent === "") {
+        elegida = casillas[4];
+      }
+
+      // 4. Si no, elige al azar.
+      if (elegida === null) {
+        const vacias = [];
+        casillas.forEach(function (casilla) {
+          if (casilla.textContent === "") {
+            vacias.push(casilla);
+          }
+        });
+        const posicion = Math.floor(Math.random() * vacias.length);
+        elegida = vacias[posicion];
+      }
+
+      jugar(elegida);
+      computadoraPensando = false;
+    }
+
+    function clicEnCasilla(casilla) {
+      if (computadoraPensando) {
+        return;
+      }
+
+      jugar(casilla);
+
+      if (!juegoTerminado && vsCompu.checked && turno === "O") {
+        computadoraPensando = true;
+        temporizador = setTimeout(jugarComputadora, 500);
+      }
+    }
+
+    function reiniciar() {
+      clearTimeout(temporizador);
+      computadoraPensando = false;
+
+      casillas.forEach(function (casilla) {
+        casilla.textContent = "";
+        casilla.classList.remove("ganadora");
+      });
+
+      turno = "X";
+      juegoTerminado = false;
+      mensaje.textContent = "Turno de: X";
+    }
+
+    casillas.forEach(function (casilla) {
+      casilla.addEventListener("click", function () {
+        clicEnCasilla(casilla);
+      });
+    });
+
+    botonReiniciar.addEventListener("click", reiniciar);
+    vsCompu.addEventListener("change", reiniciar);
+  </script>
+</body>
+</html>
